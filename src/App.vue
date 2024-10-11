@@ -1,3 +1,12 @@
+<script>
+export default {
+  computed: {
+    translatedMessage() {
+      return this.$t("orders.orders_management");
+    },
+  },
+};
+</script>
 <template>
   <div>
     <a href="https://vitejs.dev" target="_blank">
@@ -7,7 +16,7 @@
       <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
     </a>
   </div>
-  <HelloWorld msg="Orders Management" />
+  <HelloWorld :msg="translatedMessage" />
 </template>
 
 <style scoped>
