@@ -25,7 +25,7 @@
 <script>
 import { ref, watch, computed } from "vue";
 import InputText from "primevue/inputtext";
-import FloatLabel from "primevue/FloatLabel";
+import FloatLabel from "primevue/floatlabel";
 
 export default {
   name: "TextInput",
