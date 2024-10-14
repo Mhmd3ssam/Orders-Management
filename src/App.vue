@@ -14,7 +14,6 @@ export default {
 
     onMounted(async () => {
       const isAuthenticated = await authStore.checkAuth();
-      console, l;
       router.push({ name: "orders-list" });
       if (isAuthenticated) {
         router.push({ name: "orders-list" });

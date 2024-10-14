@@ -8,7 +8,7 @@ export const useAuthStore = defineStore("auth", {
     user: null,
     token: null,
     isLoading: false,
-    isAuthenticated: false
+    isAuthenticated: false,
   }),
   getters: {},
   actions: {
@@ -16,18 +16,14 @@ export const useAuthStore = defineStore("auth", {
       this.isLoading = true;
       try {
         const { data } = await auth.login(obj);
-        console.log("data", data)
         this.token = data.token;
-        this.user = data.admin.email;
-        this.isAuthenticated = true 
+        this.isAuthenticated = true;
 
         window.$cookies.set("token", this.token, "2d");
-        window.$cookies.set("user", JSON.stringify(this.user), "2d");
         await router.push({ name: "orders-list" });
-    
       } catch (error) {
         console.log(error);
-        this.isAuthenticated = false 
+        this.isAuthenticated = false;
         return error.response.data;
       } finally {
         this.isLoading = false;
@@ -38,20 +34,14 @@ export const useAuthStore = defineStore("auth", {
       try {
         const token = window.$cookies.get("token");
         if (token) {
-          const data = await auth.getMe();
-          window.$cookies.set("user", JSON.stringify(data.data.admin.email), "2d");
-          window.$cookies.set("token", JSON.stringify(data.data.token), "2d");
-
-          const user = window.$cookies.get("user");
-          const token = window.$cookies.get("token");
-          
-          this.token = token;
-          this.user = user;
-          this.isAuthenticated = true 
+          const { data } = await auth.getMe();
+          window.$cookies.set("token", data.token, "2d");
+          this.isAuthenticated = true;
+          return true;
         }
       } catch (error) {
         console.log(error);
-        this.isAuthenticated = false 
+        this.isAuthenticated = false;
       } finally {
         this.isLoading = false;
       }

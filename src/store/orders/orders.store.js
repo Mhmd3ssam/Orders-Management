@@ -66,7 +66,6 @@ export const useOrdersStore = defineStore("orders", {
       this.order.uiFlags.isLoading = true;
       try {
         const data = await ordersServices.getOrder(orderId);
-        console.log("data", data)
         this.order.record = data.data;
         return true;
       } catch (error) {
