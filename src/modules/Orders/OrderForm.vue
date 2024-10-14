@@ -4,11 +4,11 @@
     <form class="form">
       <div>
         <TextInput
-          v-model="order.productName"
+          v-model="order.product_name"
           label="Product Name"
-          id="product-name"
-          :helperMessage="errors.productName"
-          @validate="validateProductName"
+          id="product_name"
+          :helperMessage="errors.product_name"
+          @validate="validateproduct_name"
         />
       </div>
       <div>
@@ -40,11 +40,7 @@
           v-model="order.status"
           label="Select order status"
           id="status"
-          :options="[
-            { label: 'Option 1', value: 1 },
-            { label: 'Option 2', value: 2 },
-            { label: 'Option 3', value: 3 },
-          ]"
+          :options="orderStatusOptions"
           :helperMessage="errors.status"
           @validate="validateStatus"
         />
@@ -55,6 +51,7 @@
           label="Save Order"
           severity="contrast"
           size="large"
+          :loading="addOrder.isCreating"
           @click="handleSubmit"
         />
         <CustomButton
@@ -74,8 +71,11 @@
 <script>
 import { ref, computed } from "vue";
 import { required, minValue, minLength } from "@vuelidate/validators";
+import { useOrdersStore } from "@/store/orders/orders.store.js";
 import useVuelidate from "@vuelidate/core";
 import Button from "primevue/button";
+import { mapState, mapActions } from "pinia";
+import { useRouter } from "vue-router";
 
 export default {
   name: "OrderForm",
@@ -83,21 +83,15 @@ export default {
     Button,
   },
   setup() {
+    const router = useRouter();
     const order = ref({
-      productName: "",
+      product_name: "",
       quantity: null,
       price: null,
       status: null,
     });
-
-    const statusOptions = [
-      { label: "Pending", value: "Pending" },
-      { label: "Paid", value: "Paid" },
-      { label: "Canceled", value: "Canceled" },
-    ];
-
     const rules = {
-      productName: { required, minLength: minLength(3) },
+      product_name: { required, minLength: minLength(3) },
       quantity: { required, minValue: minValue(1) },
       price: { required, minValue: minValue(0) },
       status: { required },
@@ -105,19 +99,19 @@ export default {
 
     const v$ = useVuelidate(rules, order);
     const submitted = ref(false);
-
     const errors = ref({
-      productName: "",
+      product_name: "",
       quantity: "",
       price: "",
       status: "",
     });
-
     const validateProductName = (isValid) => {
       if (!isValid) {
-        errors.value.productName = "Product name is required ";
+        errors.value.product_name = isValid
+          ? ""
+          : "Product name is required and must be at least 3 characters long.";
       } else {
-        errors.value.productName = "";
+        errors.value.product_name = "";
       }
     };
 
@@ -154,47 +148,41 @@ export default {
       v$.value.$touch();
 
       if (v$.value.$invalid) {
-        if (v$.value.productName.$invalid) {
-          errors.value.productName = "Product name is required.";
-        }
-
-        if (v$.value.price.$invalid) {
-          errors.value.price = "Price is required.";
-        }
-        if (v$.value.quantity.$invalid) {
-          errors.value.quantity = "Quantity must be at least 1.";
-        }
-
-        if (v$.value.status.$invalid) {
-          errors.value.status = "Order status is required.";
-        }
+        validateProductName(!v$.value.product_name.$invalid);
+        validatePrice(!v$.value.price.$invalid);
+        validateQuantity(!v$.value.quantity.$invalid);
+        validateStatus(!v$.value.status.$invalid);
         return;
       }
 
       loading.value = true;
-      setTimeout(() => {
+      try {
+        const orderData = {
+          product_name: order.value.product_name,
+          quantity: order.value.quantity,
+          price: order.value.price,
+          status: order.value.status,
+        };
+
+        const result = await useOrdersStore().addOrder(orderData);
+
+        if (result.isCreated) {
+          submissionMessage.value = "Order created successfully!";
+          router.push({ name: "orders-list" });
+        } else {
+          submissionMessage.value = "Failed to create order. Please try again.";
+        }
+      } catch (error) {
+        console.error("Error submitting order:", error);
+        submissionMessage.value =
+          "An error occurred while creating the order. Please try again.";
+      } finally {
         loading.value = false;
-        submissionMessage.value = "Order created successfully!";
-        order.value = {
-          productName: null,
-          quantity: null,
-          price: null,
-          status: null,
-        };
-        submitted.value = false;
-        v$.value.$reset();
-        errors.value = {
-          productName: "",
-          quantity: "",
-          price: "",
-          status: "",
-        };
-      }, 2000);
+      }
     };
 
     return {
       order,
-      statusOptions,
       v$,
       errors,
       loading,
@@ -205,6 +193,22 @@ export default {
       validateQuantity,
       validateStatus,
     };
+  },
+  computed: {
+    ...mapState(useOrdersStore, ["orderStatus", "addOrder"]),
+    orderStatusOptions() {
+      return this.orderStatus.records.map((status) => ({
+        label: status.status,
+        value: status.id,
+      }));
+    },
+  },
+  methods: {
+    ...mapActions(useOrdersStore, ["getOrderStatus", "addOrder"]),
+  },
+  async created() {
+    await this.getOrderStatus();
+    console.log("addOrder", this.addOrder.uiFlags);
   },
 };
 </script>

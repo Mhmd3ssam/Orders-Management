@@ -7,6 +7,10 @@ class OrdersService extends ApiClient {
   getOrders(params = {}) {
     return axios.get(`${this.url}`, { params });
   }
+
+  addOrder(data) {
+    return axios.post(`${this.url}`, { ...data });
+  }
 }
 
 export default new OrdersService();

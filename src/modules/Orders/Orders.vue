@@ -112,7 +112,7 @@ export default {
         params.append("filter", this.filterQuery);
       }
       params.append("page", page.toString());
-
+      params.append("perPage", 5);
       await this.getOrders(params);
     },
   },

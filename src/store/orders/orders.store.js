@@ -15,6 +15,9 @@ export const useOrdersStore = defineStore("orders", {
       meta: {},
       ...initializeState(),
     },
+    addOrder: {
+      ...initializeState(),
+    },
   }),
   actions: {
     getOrders: async function (params) {
@@ -34,6 +37,25 @@ export const useOrdersStore = defineStore("orders", {
         return false;
       } finally {
         this.orders.uiFlags = { ...this.orders.uiFlags, isLoading: false };
+      }
+    },
+    addOrder: async function (data) {
+      this.addOrder.uiFlags = { ...this.addOrder.uiFlags, isCreating: true };
+      try {
+        const response = await ordersServices.addOrder(data);
+        if (response && response.data) {
+          return {
+            isCreated: true,
+            data: response.data,
+          };
+        }
+      } catch (error) {
+        console.log(error);
+        return {
+          isCreated: false,
+        };
+      } finally {
+        this.addOrder.uiFlags = { ...this.addOrder.uiFlags, isCreating: false };
       }
     },
     getOrderStatus: async function (params) {
