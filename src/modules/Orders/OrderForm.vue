@@ -208,7 +208,6 @@ export default {
   },
   async created() {
     await this.getOrderStatus();
-    console.log("addOrder", this.addOrder.uiFlags);
   },
 };
 </script>
@@ -223,7 +222,6 @@ export default {
   align-items: center;
   margin: auto;
 }
-
 .form {
   display: flex;
   flex-direction: column;

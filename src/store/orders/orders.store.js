@@ -18,6 +18,10 @@ export const useOrdersStore = defineStore("orders", {
     addOrder: {
       ...initializeState(),
     },
+    order: {
+      record: {},
+      ...initializeState(),
+    },
   }),
   actions: {
     getOrders: async function (params) {
@@ -56,6 +60,19 @@ export const useOrdersStore = defineStore("orders", {
         };
       } finally {
         this.addOrder.uiFlags = { ...this.addOrder.uiFlags, isCreating: false };
+      }
+    },
+    getOrder: async function (orderId) {
+      this.order.uiFlags.isLoading = true;
+      try {
+        const data = await ordersServices.getOrder(orderId);
+        console.log("data", data)
+        this.order.record = data.data;
+        return true;
+      } catch (error) {
+        return false;
+      } finally {
+        this.order.uiFlags.isLoading = false;
       }
     },
     getOrderStatus: async function (params) {
