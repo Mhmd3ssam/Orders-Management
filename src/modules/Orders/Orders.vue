@@ -38,7 +38,7 @@
         <OrderStatus :status="getStatusText(data.status)" />
       </template>
       <template #created="{ data }">
-        <DateFormatter :date="data.created" />
+        <DateFormatter :date="data.created" :showBoth="true" />
       </template>
     </DataTable>
   </div>
