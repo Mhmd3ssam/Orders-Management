@@ -8,7 +8,9 @@ const axiosClient = axios.create({
     Accept: "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "*",
+    "Content-Type": "application/json",
   },
+
 });
 
 axiosClient.interceptors.request.use((config) => {

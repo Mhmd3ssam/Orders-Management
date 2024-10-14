@@ -13,7 +13,6 @@
           id="status"
           :options="orderStatusOptions"
           placeholder="Select Status"
-          @blur="filterOrders"
         />
       </div>
       <div class="actions">
@@ -28,120 +27,98 @@
     </div>
     <DataTable
       :headLabels="headLabels"
-      :rowsData="filteredRowsData"
-      :metadata="metadata"
+      :rowsData="orders.records"
+      :metadata="orders.meta"
       :onPageChange="handlePageChange"
-    />
+    >
+      <template #id="{ data }">
+        <TextLink :text="data.id" :path="`/orders/${data.id}`" />
+      </template>
+      <template #status="{ data }">
+        <OrderStatus :status="getStatusText(data.status)" />
+      </template>
+      <template #created="{ data }">
+        <DateFormatter :date="data.created" />
+      </template>
+    </DataTable>
   </div>
 </template>
 
 <script>
+import { mapState, mapActions } from "pinia";
+import { useOrdersStore } from "@/store/orders/orders.store.js";
+import { formatDateTime } from "@/helpers/date.helper.js";
+
 export default {
   name: "Orders",
   data() {
     return {
-      headLabels: [
-        { header: "Product Name", field: "product_name" },
-        { header: "Quantity", field: "quantity" },
-        { header: "Price", field: "price" },
-        { header: "Status", field: "status" },
-      ],
-      rowsData: [
-        {
-          id: 1,
-          product_name: "Product 1",
-          quantity: 5,
-          status: "Pending",
-          price: 10,
-          createdAt: "2024-10-10",
-        },
-        {
-          id: 2,
-          product_name: "Product 2",
-          quantity: 5,
-          status: "Paid",
-          price: 10,
-          createdAt: "2023-09-25",
-        },
-        {
-          id: 3,
-          product_name: "Product 3",
-          quantity: 5,
-          status: "Canceled",
-          price: 10,
-          createdAt: "2023-09-15",
-        },
-        {
-          id: 4,
-          product_name: "Product 1",
-          quantity: 5,
-          status: "Pending",
-          price: 10,
-          createdAt: "2023-08-11",
-        },
-        {
-          id: 5,
-          product_name: "Product 2",
-          quantity: 5,
-          status: "Paid",
-          price: 10,
-          createdAt: "2023-07-30",
-        },
-        {
-          id: 6,
-          product_name: "Product 3",
-          quantity: "user3@example.com",
-          status: "Canceled",
-          price: 10,
-          createdAt: "2023-06-20",
-        },
-      ],
-      filteredRowsData: [],
-      metadata: {
-        total: 9,
-        pages: 1,
-        perPage: 4,
-        currentPage: 1,
-        lastPage: 1,
-      },
       selectedDate: null,
       selectedStatus: null,
-      orderStatusOptions: [
-        { label: "Pending", value: "Pending" },
-        { label: "Paid", value: "Paid" },
-        { label: "Canceled", value: "Canceled" },
-      ],
     };
   },
-  mounted() {
-    this.filteredRowsData = this.rowsData;
+
+  computed: {
+    ...mapState(useOrdersStore, ["orders", "orderStatus"]),
+    headLabels: () => [
+      { header: "Order No.", field: "id" },
+      { header: "Created at", field: "created" },
+      { header: "Product Name", field: "product_name" },
+      { header: "Quantity", field: "quantity" },
+      { header: "Price", field: "price" },
+      { header: "Status", field: "status" },
+    ],
+    orderStatusOptions() {
+      return this.orderStatus.records.map((status) => ({
+        label: status.status,
+        value: status.id,
+      }));
+    },
+    filterQuery() {
+      let conditions = [];
+      if (this.selectedStatus) {
+        conditions.push(`status='${this.selectedStatus}'`);
+      }
+      if (this.selectedDate) {
+        const formattedDate = this.formatDate(this.selectedDate);
+        conditions.push(`created='${formattedDate}'`);
+      }
+      return conditions.length > 0 ? `(${conditions.join(" && ")})` : "";
+    },
   },
   methods: {
+    ...mapActions(useOrdersStore, ["getOrders", "getOrderStatus"]),
     handlePageChange(page) {
-      console.log("Page changed to:", page);
+      this.fetchOrders(page);
     },
     updateSelectedStatus(newValue) {
       this.selectedStatus = newValue;
-      this.filterOrders();
-    },
-
-    filterOrders() {
-      console.log("selectedStatus", this.selectedStatus);
-      this.filteredRowsData = this.rowsData.filter((row) => {
-        const matchesStatus = this.selectedStatus
-          ? row.status === this.selectedStatus
-          : true;
-        const matchesDate = this.selectedDate
-          ? new Date(row.createdAt).toDateString() ===
-            new Date(this.selectedDate).toDateString()
-          : true;
-        return matchesStatus && matchesDate;
-      });
+      this.fetchOrders();
     },
     updateSelectedDate(newValue) {
       this.selectedDate = newValue;
-      this.filterOrders();
+      this.fetchOrders();
     },
+    formatDate(date) {
+      return date ? date.toISOString().split("T")[0] : "";
+    },
+    getStatusText(statusId) {
+      const status = this.orderStatus.records.find((s) => s.id === statusId);
+      return status ? status.status : "Unknown";
+    },
+    async fetchOrders(page = 1) {
+      const params = new URLSearchParams();
+      if (this.filterQuery) {
+        params.append("filter", this.filterQuery);
+      }
+      params.append("page", page.toString());
+
+      await this.getOrders(params);
+    },
+  },
+  async created() {
+    await this.getOrderStatus();
+    await this.fetchOrders();
   },
 };
 </script>

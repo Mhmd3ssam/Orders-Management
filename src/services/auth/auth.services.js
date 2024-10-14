@@ -7,7 +7,10 @@ class Auth extends ApiClient {
   }
 
   login(data) {
-    return axios.post(`${this.url}/login`, data);
+    return axios.post(
+      "http://127.0.0.1:8090/api/admins/auth-with-password",
+      data
+    );
   }
 
   logout() {
