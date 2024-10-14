@@ -3,14 +3,14 @@ import axios from "@/helpers/http.helper";
 
 class Auth extends ApiClient {
   constructor() {
-    super("auth");
+    super("admins");
   }
 
   login(data) {
-    return axios.post(
-      "http://127.0.0.1:8090/api/admins/auth-with-password",
-      data
-    );
+    return axios.post(`${this.url}/auth-with-password`, data);
+  }
+  getMe() {
+    return axios.post(`${this.url}/auth-refresh`);
   }
 
   logout() {

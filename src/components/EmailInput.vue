@@ -1,38 +1,22 @@
 <template>
   <FloatLabel variant="on">
     <label :for="id">{{ label }}</label>
-    <template v-if="type === 'password'">
-      <Password
-        v-model="internalValue"
-        @blur="onBlur"
-        @input="updateValue"
-        :inputClass="{ 'p-invalid': isInvalid }"
-        :class="{ 'p-invalid': isInvalid }"
-        :inputStyle="{ padding: '20px' }"
-        :feedback="false"
-        :id="id"
-        :disabled="disabled"
-        :size="size"
-        toggleMask
-      />
-    </template>
-    <template v-else>
-      <InputText
-        v-model="internalValue"
-        @blur="onBlur"
-        @input="updateValue"
-        :size="size"
-        :class="{ 'p-invalid': isInvalid }"
-        :id="id"
-        :disabled="disabled"
-        fluid
-      />
-    </template>
+    <InputText
+      v-model="internalValue"
+      @blur="onBlur"
+      @input="updateValue"
+      :size="size"
+      :invalid="isInvalid"
+      :id="id"
+      :disabled="disabled"
+      fluid
+      type="email"
+    />
   </FloatLabel>
   <small
     v-if="!!helperMessage"
     :id="id"
-    :style="{ color: isInvalid ? 'var(--red-500)' : '' }"
+    :style="{ color: isInvalid ? 'red' : '' }"
     class="p-helpermessage"
   >
     {{ helperMessage }}
@@ -42,12 +26,11 @@
 <script>
 import { ref, watch, computed } from "vue";
 import InputText from "primevue/inputtext";
-import Password from "primevue/password";
 import FloatLabel from "primevue/floatlabel";
 
 export default {
-  name: "TextInput",
-  components: { InputText, Password, FloatLabel },
+  name: "EmailInput",
+  components: { InputText, FloatLabel },
   props: {
     modelValue: String,
     label: String,
@@ -59,11 +42,6 @@ export default {
     helperMessage: String,
     id: String,
     disabled: Boolean,
-    type: {
-      type: String,
-      default: "text",
-      validator: (value) => ["text", "password"].includes(value),
-    },
   },
   emits: ["update:modelValue", "blur", "validate"],
   setup(props, { emit }) {
@@ -71,12 +49,17 @@ export default {
     const touched = ref(false);
 
     const isInvalid = computed(() => {
-      return touched.value && internalValue.value.length === 0;
+      return touched.value && !isValidEmail(internalValue.value);
     });
 
     watch(internalValue, (newValue) => {
       emit("update:modelValue", newValue);
     });
+
+    function isValidEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
 
     function updateValue(event) {
       internalValue.value = event.target.value;
@@ -90,7 +73,7 @@ export default {
     }
 
     function validateInput() {
-      const isValid = !(touched.value && internalValue.value.length === 0);
+      const isValid = isValidEmail(internalValue.value);
       emit("validate", isValid);
     }
 
@@ -105,17 +88,7 @@ export default {
   padding-inline: 10px;
 }
 
-:deep(.p-inputtext) {
+.p-inputtext {
   padding: 20px;
-  width: 100%;
-}
-
-:deep(.p-password input) {
-  width: 100%;
-}
-
-:deep(.p-password) {
-  width: 100%;
-  display: flex;
 }
 </style>

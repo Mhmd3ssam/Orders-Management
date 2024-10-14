@@ -3,18 +3,25 @@
 </template>
 
 <script>
-import { mapActions, mapState } from "pinia";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { useAuthStore } from "@/store/auth/auth.store";
-export default {
-  async created() {
-    await this.login({
-      identity: "mohamedammar.essam95@gmail.com",
-      password: "1234567890",
-    });
-  },
 
-  methods: {
-    ...mapActions(useAuthStore, ["login"]),
+export default {
+  setup() {
+    const router = useRouter();
+    const authStore = useAuthStore();
+
+    onMounted(async () => {
+      const isAuthenticated = await authStore.checkAuth();
+      console, l;
+      router.push({ name: "orders-list" });
+      if (isAuthenticated) {
+        router.push({ name: "orders-list" });
+      } else {
+        router.push({ name: "login" });
+      }
+    });
   },
 };
 </script>
