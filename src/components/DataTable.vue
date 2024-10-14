@@ -6,9 +6,9 @@
       :value="rowsData"
       :paginator="true"
       :rows="metadata.perPage"
-      :totalRecords="metadata.total"
-      :first="(metadata.page - 1) * metadata.perPage"
-      :page="metadata.page - 1"
+      :totalRecords="metadata.totalItems"
+      :first="metadata.totalPages - 1"
+      :lazy="true"
       @page="onPageChangeHandler"
       class="min-w-full border border-gray-200 shadow-sm"
     >
