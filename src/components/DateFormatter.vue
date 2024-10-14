@@ -66,7 +66,7 @@ export default {
       return new Date(this.date);
     },
     dateFormat() {
-      return this.showDate || this.showBoth ? "dd MMM yy" : "";
+      return this.showDate || this.showBoth ? "dd M yy" : "";
     },
   },
   methods: {
