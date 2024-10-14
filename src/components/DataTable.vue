@@ -7,8 +7,8 @@
       :paginator="true"
       :rows="metadata.perPage"
       :totalRecords="metadata.total"
-      :first="(metadata.currentPage - 1) * metadata.perPage"
-      :page="metadata.currentPage - 1"
+      :first="(metadata.page - 1) * metadata.perPage"
+      :page="metadata.page - 1"
       @page="onPageChangeHandler"
       class="min-w-full border border-gray-200 shadow-sm"
     >
@@ -17,35 +17,25 @@
         :key="index"
         :field="label.field"
         :header="label.header"
-      />
-
-      <template #body="slotProps">
-        <tr
-          v-for="(row, rowIndex) in slotProps.data"
-          :key="rowIndex"
-          class="border-b border-gray-200"
-        >
-          <td
-            v-for="(label, colIndex) in headLabels"
-            :key="colIndex"
-            class="px-4 py-2"
-          >
-            {{ row[label.field] }}
-          </td>
-        </tr>
-      </template>
+      >
+        <template #body="slotProps">
+          <slot :name="label.field" :data="slotProps.data">
+            {{ slotProps.data[label.field] }}
+          </slot>
+        </template>
+      </Column>
     </DataTable>
 
     <div v-else class="text-center py-4 text-gray-500">
       {{ noRecordsMessage }}
     </div>
-
   </div>
 </template>
 
 <script>
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
+
 export default {
   name: "SharedDataTable",
   components: { DataTable, Column },
