@@ -4,6 +4,8 @@ This project is an Order Management System built with Vue.js and PrimeVue compon
 
 ## Demo
 
+[Watch the demo ](https://www.youtube.com/watch?v=your_video_id)
+
 [View Live Demo](https://orders-management-phi.vercel.app/login)
 
 <!-- Add your video demo embed code here -->
